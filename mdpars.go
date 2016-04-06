@@ -53,7 +53,9 @@ func parseFile (fname string) (string,error) {
     file, err = os.Open(default_dir+fname)
     defer file.Close()
     filedata,err = readMDFile(file)
-    fmt.Println(filedata);
+    for _,s := range filedata {
+        fmt.Println(s.Text,"--",s.C);
+    }
 
     return ret,err
 }
@@ -69,11 +71,25 @@ func readMDFile(file *os.File) ([]mdstring,error) {
     scanner.Split(bufio.ScanLines)   
     for scanner.Scan() {
         // fmt.Println(scanner.Text());
-        c := 22
-        ret = append(ret,mdstring{Level: level, Text: scanner.Text(), C: c})
+        t := scanner.Text()
+        c := HowManyTabs(t,"    ")
+        ret = append(ret,mdstring{Level: level, Text:t , C: c})
     }    
 
     return ret,err
+}
+
+func HowManyTabs(s string,tab string) int{
+    q := 0
+    emMax := 10
+    for strings.HasPrefix(s,tab) {
+        q++
+        s = s[len(tab):]
+        if q >= emMax {
+            break;
+        }
+    }
+    return q
 }
 
 func main() {
