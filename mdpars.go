@@ -9,13 +9,15 @@ import (
 )
 
 func init() {
-    readConfig();
+    today = "2016-04-05"
 }
 
 var (
     default_dir = "/home/nikonor/Yandex.Disk/#iA/"
+    default_tab = "    "
     mdfiles []string
     err error
+    today string
 )
 
     type mdstring struct {
@@ -24,10 +26,6 @@ var (
         C int
     }
 
-
-func readConfig() {
-    fmt.Println("call readConfig");
-}
 
 func getFiles () ([]string, error) {
     var mdfs []string
@@ -72,7 +70,7 @@ func readMDFile(file *os.File) ([]mdstring,error) {
     for scanner.Scan() {
         // fmt.Println(scanner.Text());
         t := scanner.Text()
-        c := HowManyTabs(t,"    ")
+        c := HowManyTabs(t,default_tab)
         ret = append(ret,mdstring{Level: level, Text:t , C: c})
     }    
 
