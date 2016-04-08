@@ -14,9 +14,9 @@ func TestHowManyTabs(t *testing.T) {
         {"string","\t",0},
         {"\tstring","\t",1},
         {"\t\tstring","\t",2},
-        {"string","  ",0},
-        {"  string","  ",1},
-        {"    string","  ",2},
+        {"string"," ",0},
+        {"  string"," ",2},
+        {"    string"," ",4},
     }
 
     for _,c := range cases {

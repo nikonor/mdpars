@@ -14,17 +14,16 @@ func init() {
 
 var (
     default_dir = "/home/nikonor/Yandex.Disk/#iA/"
-    default_tab = "    "
+    default_tab = " "
     mdfiles []string
     err error
     today string
 )
 
-    type mdstring struct {
-        Level int 
-        Text string
-        C int
-    }
+type mdstring struct {
+    Level int  // уровень записи, состоит из уровня предка и кол-ва отступов
+    Text string // собственно строка, без отступов и т.д.
+}
 
 
 func getFiles () ([]string, error) {
@@ -52,7 +51,7 @@ func parseFile (fname string) (string,error) {
     defer file.Close()
     filedata,err = readMDFile(file)
     for _,s := range filedata {
-        fmt.Println(s.Text,"--",s.C);
+        fmt.Println(s.Text,", Level=",s.Level);
     }
 
     return ret,err
@@ -62,16 +61,22 @@ func readMDFile(file *os.File) ([]mdstring,error) {
     var (
         ret []mdstring
         err error
-        level = 1
+        l = 0 
     )
 
     scanner := bufio.NewScanner(file)
     scanner.Split(bufio.ScanLines)   
     for scanner.Scan() {
-        // fmt.Println(scanner.Text());
         t := scanner.Text()
         c := HowManyTabs(t,default_tab)
-        ret = append(ret,mdstring{Level: level, Text:t , C: c})
+        h := HowManyTabs(t,"#")
+        if h > 0 {
+            l = h
+        }
+        t = strings.TrimSpace(t)
+        if len(t) > 0 {
+            ret = append(ret,mdstring{Level: (l + c), Text:t })
+        }
     }    
 
     return ret,err
