@@ -24,6 +24,10 @@ type mdstring struct {
     Level int  // уровень записи, состоит из уровня предка и кол-ва отступов
     Text string // собственно строка, без отступов и т.д.
 }
+type tag struct {
+    Tag string
+    Date string
+}
 
 
 func getFiles () ([]string, error) {
@@ -80,6 +84,32 @@ func readMDFile(file *os.File) ([]mdstring,error) {
     }    
 
     return ret,err
+}
+
+func ParseTag (t string) tag {
+    ret := tag{}
+
+    t = t[1:]
+    tt := strings.Split(t,"(")
+
+    ret.Tag = tt[0]
+    if len(tt)>1 {
+        ret.Date = tt[1][:len(tt[1])-1]
+    } 
+    return ret
+}
+
+func FindTags (s string) []tag {
+    var (
+        ret []tag
+    )
+
+    for _,w := range(strings.Fields(s)) {
+        if strings.HasPrefix(w,"@") {
+            ret = append(ret,ParseTag(w))
+        }
+    }
+    return ret
 }
 
 func HowManyTabs(s string,tab string) int{
