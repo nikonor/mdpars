@@ -23,6 +23,7 @@ var (
 type mdstring struct {
     Level int  // уровень записи, состоит из уровня предка и кол-ва отступов
     Text string // собственно строка, без отступов и т.д.
+    Tags []tag // список тэгов
 }
 type tag struct {
     Tag string
@@ -55,7 +56,7 @@ func parseFile (fname string) (string,error) {
     defer file.Close()
     filedata,err = readMDFile(file)
     for _,s := range filedata {
-        fmt.Println(s.Text,", Level=",s.Level);
+        fmt.Println(s.Text,", Level=",s.Level,s.Tags);
     }
 
     return ret,err
@@ -78,8 +79,9 @@ func readMDFile(file *os.File) ([]mdstring,error) {
             l = h
         }
         t = strings.TrimSpace(t)
+        tt := FindTags(t)
         if len(t) > 0 {
-            ret = append(ret,mdstring{Level: (l + c), Text:t })
+            ret = append(ret,mdstring{Level: (l + c), Text:t, Tags: tt })
         }
     }    
 
