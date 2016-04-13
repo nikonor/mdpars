@@ -34,6 +34,34 @@ func TestFindTags(t *testing.T) {
     }
 }
 
+func TestCheckString(t *testing.T) {
+    cases := []struct{
+        in mdstring
+        wait bool
+    }{
+        {mdstring{Level:6, Text:"- [ ] стол в спалью", Tags:[]tag(nil), Show:false},
+            false },
+        {mdstring{Level:1, Text:"- [ ] страница про профессии @na", Tags:[]tag{tag{Tag:"na", Date:""}}, Show:false},
+            true },
+        {mdstring{Level:2, Text:"- [ ] 2016 @start(2016-04-10)", Tags:[]tag{tag{Tag:"start", Date:"2016-04-10"}}, Show:false},
+            true },
+        {mdstring{Level:2, Text:"- [ ] 2017 ivi.ru @start(2017-04-10)", Tags:[]tag{tag{Tag:"start", Date:"2017-04-10"}}, Show:false},
+            false },
+        {mdstring{Level:2, Text:"- [ ] что-то сдалать @done(2016-04-10)", Tags:[]tag{tag{Tag:"done", Date:"2016-04-10"}}, Show:false},
+            false },
+    }
+    for _,c := range cases {
+        out := CheckString(c.in,today)
+        fmt.Printf("\tCheckString\n\t%s\n",c.in.Text)
+        fmt.Printf("\t\treturned %v, we waited %v\n",out,c.wait)
+
+        if out != c.wait {
+            t.Errorf("CheckString returned %v != %v",out,c.wait)
+        }
+    }
+
+}
+
 func TestHowManyTabs(t *testing.T) {
     cases := []struct{
         str string
