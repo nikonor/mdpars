@@ -12,7 +12,6 @@ import (
 
 func init() {
 	today = time.Now().Format("2006-01-02")
-	fmt.Println("today=", today)
 }
 
 var (
@@ -32,6 +31,21 @@ type mdstring struct {
 type tag struct {
 	Tag  string
 	Date string
+}
+
+func (mds mdstring) String () string {
+	s := ""
+	for i := 0; i< mds.Level; i++ {
+		s += " "
+	}
+	s += mds.Text
+	// for _,t := range mds.Tags {
+	// 	s += "\t"+t.Tag
+	// 	if t.Date != "" {
+	// 		s+= "\n\t"+t.Date+""
+	// 	}
+	// }
+	return s
 }
 
 func getFiles() ([]string, error) {
@@ -96,13 +110,14 @@ func parseFile(fname string) (string, error) {
 	defer file.Close()
 	filedata, err = readMDFile(file)
 	for _,s := range filedata {
-		ret = append(ret,s.Text)
+		ret = append(ret,s.String())
 	}
 	return strings.Join(ret,"\n"), err
 }
 
 func readMDFile(file *os.File) ([]mdstring, error) {
 	var (
+		data []mdstring
 		ret []mdstring
 		err error
 		l   = 0
@@ -123,9 +138,16 @@ func readMDFile(file *os.File) ([]mdstring, error) {
 			s := mdstring{Level: (l + c), Text: t, Tags: tt, Show: false}
 			if CheckString(s,today) {
 				s.Show = true
-				fmt.Printf("\t%#v\n", s)
-				ret = append(ret, s)
+				// TK - прогон вверх, отмечает все, что выше имеют Level меньше текущего
+				// TK - прогон вниз. отмечаем все записи, Level которых больше.
 			}
+			data = append(data, s)
+		}
+	}
+
+	for _,d := range data {
+		if d.Show {
+			ret = append(ret,d)
 		}
 	}
 
@@ -181,9 +203,11 @@ func main() {
 	}
 	// обработка файлов
 	// TK - пока один
-	// var o string
-	_, err = parseFile("ToDo.md")
-	// fmt.Println("--- begin for ToDo.md ---\n", o, "\n--- end for ToDo.md ---")
+	var o string
+	o, err = parseFile("ToDo.md")
+	fmt.Println("--- begin for ToDo.md ---")
+	fmt.Println(o)
+	fmt.Println("--- end for ToDo.md ---")
 
 	fmt.Println("Finish")
 }
