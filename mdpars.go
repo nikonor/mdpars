@@ -35,7 +35,7 @@ type tag struct {
 
 func (mds mdstring) String () string {
 	s := ""
-	for i := 0; i< mds.Level; i++ {
+	for i := 0; i< (mds.Level-1); i++ {
 		s += " "
 	}
 	s += mds.Text
@@ -105,7 +105,7 @@ func parseFile(fname string) (string, error) {
 		err      error
 		file     *os.File
 	)
-	ret = append(ret, ("# " + fname))
+	// ret = append(ret, ("# " + fname))
 	file, err = os.Open(default_dir + fname)
 	defer file.Close()
 	filedata, err = readMDFile(file)
@@ -127,10 +127,12 @@ func readMDFile(file *os.File) ([]mdstring, error) {
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
 		t := scanner.Text()
-		c := HowManyTabs(t, default_tab)
 		h := HowManyTabs(t, "#")
+		c := 0
 		if h > 0 {
 			l = h
+		} else {
+			c = HowManyTabs(t, default_tab) + 1
 		}
 		t = strings.TrimSpace(t)
 		tt := FindTags(t)
@@ -138,12 +140,20 @@ func readMDFile(file *os.File) ([]mdstring, error) {
 			s := mdstring{Level: (l + c), Text: t, Tags: tt, Show: false}
 			if CheckString(s,today) {
 				s.Show = true
-				// TK - прогон вверх, отмечает все, что выше имеют Level меньше текущего
-				// TK - прогон вниз. отмечаем все записи, Level которых больше.
 			}
 			data = append(data, s)
 		}
 	}
+
+	for i,d := range data {
+		if d.Show {
+			// прогон вверх, отмечает все, что выше имеют Level меньше текущего
+			go_up(data, i, d.Level)
+			// TK - прогон вниз. отмечаем все записи, Level которых больше.
+			go_down(data, i, d.Level)
+		}
+	}
+
 
 	for _,d := range data {
 		if d.Show {
@@ -153,6 +163,32 @@ func readMDFile(file *os.File) ([]mdstring, error) {
 
 	return ret, err
 }
+
+
+func go_up(d []mdstring, n, level int) {
+	// прогон вверх, отмечает все, что выше имеют Level меньше текущего
+	cur_level := d[n].Level
+	for i := n; i>=0; i-- {
+		if d[i].Level < cur_level {
+			d[i].Show = true
+			cur_level=d[i].Level
+		}
+	}
+}
+
+func go_down(d []mdstring, n,level int) {
+	cur_level := d[n].Level
+	for i := n; i < len(d); i++ {
+		if d[i].Level < cur_level {
+			break
+		}
+		if d[i].Level >= cur_level {
+			cur_level = d[i].Level
+			d[i].Show = true
+		}
+	}
+}
+
 
 func ParseTag(t string) tag {
 	ret := tag{}
@@ -204,10 +240,12 @@ func main() {
 	// обработка файлов
 	// TK - пока один
 	var o string
-	o, err = parseFile("ToDo.md")
-	fmt.Println("--- begin for ToDo.md ---")
-	fmt.Println(o)
-	fmt.Println("--- end for ToDo.md ---")
+	for _,f := range mdfiles {
+		// fmt.Printf("--- begin for %s ---\n",f)
+		o, err = parseFile(f)
+		fmt.Println(o)
+		// fmt.Printf("--- end for %s ---\n",f)
+	}
 
 	fmt.Println("Finish")
 }
