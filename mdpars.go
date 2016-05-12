@@ -15,7 +15,7 @@ func init() {
 }
 
 var (
-	default_dir = "/home/nikonor/Yandex.Disk/#iA/"
+	default_dir = "/Users/nikonor/Яндекс.Диск/#iA/"
 	default_tab = " "
 	mdfiles     []string
 	err         error
@@ -179,7 +179,7 @@ func go_up(d []mdstring, n, level int) {
 func go_down(d []mdstring, n,level int) {
 	cur_level := d[n].Level
 	for i := n; i < len(d); i++ {
-		if d[i].Level < cur_level {
+		if d[i].Level < cur_level || strings.HasPrefix(d[i].Text,"#") {
 			break
 		}
 		if d[i].Level >= cur_level {
